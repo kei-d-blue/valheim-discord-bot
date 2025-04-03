@@ -1,0 +1,14 @@
+{
+  "name": "valheim-discord-bot",
+  "version": "1.0.0",
+  "description": "Valheimサーバー用Discordボット",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.1",
+    "axios": "^1.6.7"
+  }
+}

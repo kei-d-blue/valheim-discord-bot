@@ -168,13 +168,16 @@ class ConoHaClient {
         }
       });
 
-      // 稼働時間を計算
+      // 稼働時間と料金を計算
       const elapsedTime = timeCalculator.calculateElapsedTime();
+      const cost = timeCalculator.calculateCost();
 
       // 起動時間をリセット
       timeCalculator.resetStartTime();
 
-      return `サーバーを停止しました。\n稼働時間: ${elapsedTime}`;
+      return `サーバーを停止しました。\n` +
+             `稼働時間: ${elapsedTime}\n` +
+             `料金: ${cost}`;
     } catch (error) {
       console.error('サーバー停止エラー:', error.response?.data || error.message);
       throw error;
@@ -203,12 +206,14 @@ class ConoHaClient {
       const ipv4 = networkInterface?.find(addr => addr.version === 4)?.addr || '未設定';
       const ipv6 = networkInterface?.find(addr => addr.version === 6)?.addr || '未設定';
       const elapsedTime = timeCalculator.calculateElapsedTime();
+      const cost = timeCalculator.calculateCost();
 
       return `**サーバー詳細情報**\n\n` +
              `- 名前: ${server.name}\n` +
              `- ID: ${server.id}\n` +
              `- 状態: ${server.status}\n` +
              `- 稼働時間: ${elapsedTime}\n` +
+             `- 料金: ${cost}\n` +
              `- プライベートIPv4: ${ipv4}\n` +
              `- プライベートIPv6: ${ipv6}\n`;
     } catch (error) {

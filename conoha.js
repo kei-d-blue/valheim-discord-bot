@@ -85,46 +85,24 @@ class ConoHaClient {
   }
 
   /**
-   * 指定したサーバーの詳細情報を取得する
-   * @param {string} serverId - サーバーID
-   * @returns {Promise<string>} サーバーの詳細情報
-   * @throws {Error} サーバー情報の取得に失敗した場合
+   * サーバーの状態を取得する
+   * @returns {Promise<string>} サーバーの状態
+   * @throws {Error} サーバー状態の取得に失敗した場合
    */
-  async getServerDetails(serverId) {
+  async getServerState() {
     try {
       if (!this.token) await this.authenticate();
       
-      const response = await axios.get(`${this.computeURL}/servers/${serverId}`, {
+      const response = await axios.get(`${this.computeURL}/servers/${this.serverId}`, {
         headers: {
           'X-Auth-Token': this.token,
           'Content-Type': 'application/json'
         }
       });
 
-      const server = response.data.server;
-      const ipv4 = server.addresses?.private?.find(addr => addr.version === 4)?.addr || '未設定';
-      const ipv6 = server.addresses?.private?.find(addr => addr.version === 6)?.addr || '未設定';
-      const flavor = server.flavor?.name || '不明';
-      const image = server.image?.name || '不明';
-      const created = timeCalculator.formatDate(server.created);
-      const updated = timeCalculator.formatDate(server.updated);
-      const launchedAt = timeCalculator.formatDate(server['OS-SRV-USG:launched_at']);
-      const elapsedTime = timeCalculator.calculateElapsedTime();
-
-      return `**サーバー詳細情報**\n\n` +
-             `- 名前: ${server.name}\n` +
-             `- ID: ${server.id}\n` +
-             `- 状態: ${server.status}\n` +
-             `- 起動時間: ${launchedAt}\n` +
-             `- 稼働時間: ${elapsedTime}\n` +
-             `- プライベートIPv4: ${ipv4}\n` +
-             `- プライベートIPv6: ${ipv6}\n` +
-             `- フレーバー: ${flavor}\n` +
-             `- イメージ: ${image}\n` +
-             `- 作成日時: ${created}\n` +
-             `- 更新日時: ${updated}`;
+      return response.data.server.status;
     } catch (error) {
-      console.error('サーバー詳細取得エラー:', error.response?.data || error.message);
+      console.error('サーバー状態取得エラー:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -136,6 +114,14 @@ class ConoHaClient {
    */
   async startServer() {
     try {
+      // サーバーの状態を確認
+      const currentState = await this.getServerState();
+      
+      // すでに起動中の場合はメッセージを返す
+      if (currentState === 'ACTIVE') {
+        return 'サーバーは既に起動中です。';
+      }
+
       if (!this.token) await this.authenticate();
       
       const response = await axios.post(`${this.computeURL}/servers/${this.serverId}/action`, {
@@ -163,6 +149,14 @@ class ConoHaClient {
    */
   async stopServer() {
     try {
+      // サーバーの状態を確認
+      const currentState = await this.getServerState();
+      
+      // すでに停止中の場合はメッセージを返す
+      if (currentState === 'SHUTOFF') {
+        return 'サーバーは既に停止中です。';
+      }
+
       if (!this.token) await this.authenticate();
       
       const response = await axios.post(`${this.computeURL}/servers/${this.serverId}/action`, {
@@ -202,12 +196,21 @@ class ConoHaClient {
           'Content-Type': 'application/json'
         }
       });
-      
-      const status = response.data.server.status;
-      const launchedAt = timeCalculator.formatDate(response.data.server['OS-SRV-USG:launched_at']);
+
+      const server = response.data.server;
+      // 最初のネットワークインターフェースのアドレスを取得
+      const networkInterface = Object.values(server.addresses)[0];
+      const ipv4 = networkInterface?.find(addr => addr.version === 4)?.addr || '未設定';
+      const ipv6 = networkInterface?.find(addr => addr.version === 6)?.addr || '未設定';
       const elapsedTime = timeCalculator.calculateElapsedTime();
 
-      return `サーバーの状態: ${status}\n起動時間: ${launchedAt}\n稼働時間: ${elapsedTime}`;
+      return `**サーバー詳細情報**\n\n` +
+             `- 名前: ${server.name}\n` +
+             `- ID: ${server.id}\n` +
+             `- 状態: ${server.status}\n` +
+             `- 稼働時間: ${elapsedTime}\n` +
+             `- プライベートIPv4: ${ipv4}\n` +
+             `- プライベートIPv6: ${ipv6}\n`;
     } catch (error) {
       console.error('サーバー状態取得エラー:', error.response?.data || error.message);
       throw error;

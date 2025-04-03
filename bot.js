@@ -20,13 +20,6 @@ const commands = [
   new SlashCommandBuilder()
     .setName('status')
     .setDescription('Valheimサーバーの状態を確認します'),
-  new SlashCommandBuilder()
-    .setName('info')
-    .setDescription('サーバーの詳細情報を表示します')
-    .addStringOption(option =>
-      option.setName('server_id')
-        .setDescription('サーバーID')
-        .setRequired(true))
 ].map(command => command.toJSON());
 
 // スラッシュコマンドの登録

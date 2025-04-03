@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  valheim-discord-bot:
+    build: .
+    container_name: valheim-discord-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules 

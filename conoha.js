@@ -18,6 +18,7 @@ class ConoHaClient {
     this.apiPassword = process.env.CONOHA_API_PASSWORD;
     this.serverId = process.env.CONOHA_SERVER_ID;
     this.token = null;
+    this.tokenExpiration = null; // トークンの有効期限を保持
 
     // 必要な環境変数のチェック
     this.validateConfig();
@@ -42,11 +43,33 @@ class ConoHaClient {
   }
 
   /**
+   * トークンが有効かどうかチェックする
+   * @returns {boolean} トークンが有効な場合はtrue
+   */
+  isTokenValid() {
+    if (!this.token || !this.tokenExpiration) {
+      return false;
+    }
+    // 現在時刻と有効期限を比較（1分のバッファを設定）
+    return new Date() < new Date(this.tokenExpiration - 60000);
+  }
+
+  /**
+   * 必要に応じてトークンを更新する
+   */
+  async ensureValidToken() {
+    if (!this.isTokenValid()) {
+      await this.authenticate();
+    }
+  }
+
+  /**
    * ConoHa APIの認証を行う
    * @returns {Promise<string>} 認証トークン
    * @throws {Error} 認証に失敗した場合
    */
   async authenticate() {
+    console.log('ConoHa API認証を開始します...');
     try {
       const response = await axios.post(`${this.identityURL}/auth/tokens`, {
         auth: {
@@ -71,12 +94,15 @@ class ConoHaClient {
         }
       });
 
-      // レスポンスヘッダーからトークンを取得
       this.token = response.headers['x-subject-token'];
       if (!this.token) {
         throw new Error('認証トークンが見つかりませんでした');
       }
 
+      // トークンの有効期限を24時間後に設定
+      this.tokenExpiration = Date.now() + (24 * 60 * 60 * 1000);
+      console.log('ConoHa API認証が完了しました。トークンの有効期限:', new Date(this.tokenExpiration).toLocaleString('ja-JP'));
+      
       return this.token;
     } catch (error) {
       console.error('ConoHa認証エラー:', error.response?.data || error.message);
@@ -90,8 +116,9 @@ class ConoHaClient {
    * @throws {Error} サーバー状態の取得に失敗した場合
    */
   async getServerState() {
+    console.log('サーバー状態の取得を開始します...');
     try {
-      if (!this.token) await this.authenticate();
+      await this.ensureValidToken();
       
       const response = await axios.get(`${this.computeURL}/servers/${this.serverId}`, {
         headers: {
@@ -100,6 +127,7 @@ class ConoHaClient {
         }
       });
 
+      console.log('サーバー状態の取得が完了しました。状態:', response.data.server.status);
       return response.data.server.status;
     } catch (error) {
       console.error('サーバー状態取得エラー:', error.response?.data || error.message);
@@ -113,16 +141,17 @@ class ConoHaClient {
    * @throws {Error} サーバーの起動に失敗した場合
    */
   async startServer() {
+    console.log('サーバー起動処理を開始します...');
     try {
+      await this.ensureValidToken();
       // サーバーの状態を確認
       const currentState = await this.getServerState();
       
       // すでに起動中の場合はメッセージを返す
       if (currentState === 'ACTIVE') {
+        console.log('サーバーは既に起動中です。');
         return 'サーバーは既に起動中です。';
       }
-
-      if (!this.token) await this.authenticate();
       
       const response = await axios.post(`${this.computeURL}/servers/${this.serverId}/action`, {
         'os-start': null
@@ -135,6 +164,7 @@ class ConoHaClient {
 
       // 起動時間を記録
       timeCalculator.setStartTime(new Date());
+      console.log('サーバー起動処理が完了しました。');
       return 'サーバーを起動しました。';
     } catch (error) {
       console.error('サーバー起動エラー:', error.response?.data || error.message);
@@ -148,16 +178,17 @@ class ConoHaClient {
    * @throws {Error} サーバーの停止に失敗した場合
    */
   async stopServer() {
+    console.log('サーバー停止処理を開始します...');
     try {
+      await this.ensureValidToken();
       // サーバーの状態を確認
       const currentState = await this.getServerState();
       
       // すでに停止中の場合はメッセージを返す
       if (currentState === 'SHUTOFF') {
+        console.log('サーバーは既に停止中です。');
         return 'サーバーは既に停止中です。';
       }
-
-      if (!this.token) await this.authenticate();
       
       const response = await axios.post(`${this.computeURL}/servers/${this.serverId}/action`, {
         'os-stop': null
@@ -175,6 +206,7 @@ class ConoHaClient {
       // 起動時間をリセット
       timeCalculator.resetStartTime();
 
+      console.log('サーバー停止処理が完了しました。稼働時間:', elapsedTime, '料金:', cost);
       return `サーバーを停止しました。\n` +
              `稼働時間: ${elapsedTime}\n` +
              `料金: ${cost}`;
@@ -190,8 +222,9 @@ class ConoHaClient {
    * @throws {Error} サーバー状態の取得に失敗した場合
    */
   async getServerStatus() {
+    console.log('サーバー詳細情報の取得を開始します...');
     try {
-      if (!this.token) await this.authenticate();
+      await this.ensureValidToken();
       
       const response = await axios.get(`${this.computeURL}/servers/${this.serverId}`, {
         headers: {
@@ -208,6 +241,7 @@ class ConoHaClient {
       const elapsedTime = timeCalculator.calculateElapsedTime();
       const cost = timeCalculator.calculateCost();
 
+      console.log('サーバー詳細情報の取得が完了しました。状態:', server.status);
       return `**サーバー詳細情報**\n\n` +
              `- 名前: ${server.name}\n` +
              `- ID: ${server.id}\n` +

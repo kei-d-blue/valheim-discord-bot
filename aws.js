@@ -73,6 +73,21 @@ class AWSClient {
         console.log('インスタンスは既に起動中です。');
         return 'インスタンスは既に起動中です。';
       }
+
+      if (currentState === 'pending') {
+        console.log('インスタンスは起動処理中です。');
+        return 'インスタンスは起動処理中です。しばらくお待ちください。';
+      }
+
+      if (currentState === 'shutting-down' || currentState === 'stopping') {
+        console.log('インスタンスは停止処理中です。');
+        return 'インスタンスは停止処理中です。停止が完了するまでお待ちください。';
+      }
+
+      if (currentState === 'terminated') {
+        console.log('インスタンスは終了済みです。');
+        return 'インスタンスは終了済みです。新しいインスタンスを作成する必要があります。';
+      }
       
       const command = new StartInstancesCommand({
         InstanceIds: [this.instanceId]
@@ -82,10 +97,10 @@ class AWSClient {
       timeCalculator.setStartTime(new Date());
       
       console.log('インスタンス起動処理が完了しました。');
-      return 'インスタンスを起動しました。';
+      return 'インスタンスを起動しました。起動完了までしばらくお待ちください。';
     } catch (error) {
       console.error('インスタンス起動エラー:', error);
-      throw error;
+      throw new Error(`インスタンスの起動に失敗しました: ${error.message}`);
     }
   }
 
@@ -102,6 +117,21 @@ class AWSClient {
       if (currentState === 'stopped') {
         console.log('インスタンスは既に停止中です。');
         return 'インスタンスは既に停止中です。';
+      }
+
+      if (currentState === 'shutting-down' || currentState === 'stopping') {
+        console.log('インスタンスは停止処理中です。');
+        return 'インスタンスは停止処理中です。しばらくお待ちください。';
+      }
+
+      if (currentState === 'terminated') {
+        console.log('インスタンスは終了済みです。');
+        return 'インスタンスは終了済みです。';
+      }
+
+      if (currentState === 'pending') {
+        console.log('インスタンスは起動処理中です。');
+        return 'インスタンスは起動処理中です。起動完了後に停止を試みてください。';
       }
       
       const command = new StopInstancesCommand({
@@ -121,7 +151,7 @@ class AWSClient {
              `料金: ${cost}`;
     } catch (error) {
       console.error('インスタンス停止エラー:', error);
-      throw error;
+      throw new Error(`インスタンスの停止に失敗しました: ${error.message}`);
     }
   }
 

@@ -75,10 +75,14 @@ client.on('interactionCreate', async interaction => {
     }
   } catch (error) {
     console.error('コマンド実行中にエラーが発生しました:', error);
-    await interaction.reply({ 
-      content: 'コマンドの実行中にエラーが発生しました。',
-      ephemeral: true 
-    });
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ 
+        content: 'コマンドの実行中にエラーが発生しました。',
+        flags: 64 // 64 is the flag for ephemeral messages
+      });
+    } else {
+      await interaction.editReply('コマンドの実行中にエラーが発生しました。');
+    }
   }
 });
 

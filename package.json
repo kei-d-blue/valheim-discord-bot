@@ -7,8 +7,9 @@
     "start": "node bot.js"
   },
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.800.0",
+    "axios": "^1.6.7",
     "discord.js": "^14.14.1",
-    "dotenv": "^16.4.1",
-    "axios": "^1.6.7"
+    "dotenv": "^16.4.1"
   }
 }

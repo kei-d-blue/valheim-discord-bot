@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
-const conoha = require('./conoha');
+const aws = require('./aws');
 
 const client = new Client({
   intents: [
@@ -49,27 +49,27 @@ client.on('interactionCreate', async interaction => {
   try {
     switch (commandName) {
       case 'start':
-        await interaction.reply('サーバーを起動中です...');
-        const startResult = await conoha.startServer();
+        await interaction.reply('インスタンスを起動中です...');
+        const startResult = await aws.startServer();
         await interaction.editReply(startResult);
         break;
 
       case 'stop':
-        await interaction.reply('サーバーを停止中です...');
-        const stopResult = await conoha.stopServer();
+        await interaction.reply('インスタンスを停止中です...');
+        const stopResult = await aws.stopServer();
         await interaction.editReply(stopResult);
         break;
 
       case 'status':
-        await interaction.reply('サーバーの状態を確認中です...');
-        const statusResult = await conoha.getServerStatus();
+        await interaction.reply('インスタンスの状態を確認中です...');
+        const statusResult = await aws.getServerStatus();
         await interaction.editReply(statusResult);
         break;
 
       case 'info':
         const serverId = interaction.options.getString('server_id');
         await interaction.reply('サーバー情報を取得中です...');
-        const infoResult = await conoha.getServerDetails(serverId);
+        const infoResult = await aws.getServerDetails(serverId);
         await interaction.editReply(infoResult);
         break;
     }

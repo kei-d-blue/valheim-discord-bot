@@ -1,12 +1,12 @@
 # Valheim Discord Bot
 
-ValheimサーバーをDiscordから管理するためのボットです。ConoHa VPSインスタンスの起動/停止と状態確認ができます。
+ValheimサーバーをDiscordから管理するためのボットです。AWS EC2インスタンスの起動/停止と状態確認ができます。
 
 ## 機能
 
-- `/start` - サーバーを起動
-- `/stop` - サーバーを停止
-- `/status` - サーバーの状態と稼働時間を表示
+- `/start` - インスタンスを起動
+- `/stop` - インスタンスを停止
+- `/status` - インスタンスの状態と稼働時間を表示
 
 ## セットアップ
 
@@ -18,10 +18,10 @@ ValheimサーバーをDiscordから管理するためのボットです。ConoHa
 DISCORD_TOKEN=your_discord_bot_token
 CLIENT_ID=your_client_id
 GUILD_ID=your_guild_id
-CONOHA_TENANT_ID=your_tenant_id
-CONOHA_API_USERNAME=your_api_username
-CONOHA_API_PASSWORD=your_api_password
-CONOHA_SERVER_ID=your_server_id
+AWS_REGION=your_aws_region
+AWS_INSTANCE_ID=your_instance_id
+AWS_ACCESS_KEY_ID=your_access_key_id
+AWS_SECRET_ACCESS_KEY=your_secret_access_key
 ```
 
 ### 通常の実行方法
@@ -56,44 +56,43 @@ docker compose down
 ## コマンドの説明
 
 ### `/start`
-- サーバーを起動します
+- EC2インスタンスを起動します
 - すでに起動中の場合はその旨を表示します
 
 ### `/stop`
-- サーバーを停止します
+- EC2インスタンスを停止します
 - 稼働時間と料金を表示します
 - すでに停止中の場合はその旨を表示します
 
 ### `/status`
-- サーバーの状態を表示します
+- EC2インスタンスの状態を表示します
 - 稼働時間と料金を表示します
 - IPアドレス情報も表示します
 
 ## 注意事項
 
-- サーバーの起動/停止には数分かかる場合があります
-- 料金は1時間あたり7.5円で計算されます
-- 1時間未満の使用は1時間として計算されます
-- サーバーの状態は定期的に更新されます
+- インスタンスの起動/停止には数分かかる場合があります
+- 料金はAWSの料金体系に従って計算されます
+- インスタンスの状態は定期的に更新されます
 
 ## 前提条件
 
 - Node.js 18.x
-- ConoHaアカウント
+- AWSアカウント
 - Discord Application Public Key
-- ConoHa VPSインスタンス（Valheimサーバー）
+- AWS EC2インスタンス（Valheimサーバー）
 
 ## アーキテクチャ
 
 - Discord Bot
-- ConoHa VPSインスタンス（Valheimサーバー）
-- ConoHa API
+- AWS EC2インスタンス（Valheimサーバー）
+- AWS SDK
 
 ## セキュリティ
 
 - 環境変数による機密情報の管理
 - Discordインタラクションの署名検証
-- ConoHa API認証トークンの管理
+- AWS認証情報の管理
 
 ## ライセンス
 

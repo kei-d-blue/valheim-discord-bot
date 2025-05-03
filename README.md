@@ -15,13 +15,25 @@ ValheimサーバーをDiscordから管理するためのボットです。AWS EC
 `.env`ファイルを作成し、以下の環境変数を設定してください：
 
 ```env
+# Discord Bot設定
 DISCORD_TOKEN=your_discord_bot_token
 CLIENT_ID=your_client_id
 GUILD_ID=your_guild_id
+
+# AWS設定
 AWS_REGION=your_aws_region
 AWS_INSTANCE_ID=your_instance_id
 AWS_ACCESS_KEY_ID=your_access_key_id
 AWS_SECRET_ACCESS_KEY=your_secret_access_key
+
+# ConoHa設定
+CONOHA_TENANT_ID=your_tenant_id
+CONOHA_API_USERNAME=your_api_username
+CONOHA_API_PASSWORD=your_api_password
+CONOHA_SERVER_ID=your_server_id
+
+# 料金設定
+HOURLY_RATE=10  # 1時間あたりの料金（円）
 ```
 
 ### 通常の実行方法

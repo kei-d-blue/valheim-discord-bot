@@ -8,7 +8,7 @@ class TimeCalculator {
    */
   constructor() {
     this.startTime = null;
-    this.HOURLY_RATE = 10; // 1時間あたりの料金（円）
+    this.HOURLY_RATE = parseInt(process.env.HOURLY_RATE) || 10; // 1時間あたりの料金（円）
   }
 
   /**
